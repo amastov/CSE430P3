@@ -16,7 +16,7 @@
 
 
 
-asmlinkage long sys_my_syscall( int pid, const unsigned long address)
+asmlinkage long sys_my_syscall( int pid, unsigned long address)
 {
    
    struct task_struct* task;
@@ -37,44 +37,30 @@ asmlinkage long sys_my_syscall( int pid, const unsigned long address)
             
             pgd = pgd_offset(mm, address);
  
-            printk(KERN_INFO "PGD INFO: PRESENT: %d, NONE: %d, BAD: %d\n", pgd_present(*pgd), pgd_bad(*pgd), pgd_none(*pgd));
+            printk(KERN_INFO "PGD INFO: PRESENT: %d, BAD: %d, NONE: %d\n", pgd_present(*pgd), pgd_bad(*pgd), pgd_none(*pgd));
             if(!(pgd_none(*pgd) || pgd_bad(*pgd)) && pgd_present(*pgd))
             {
  
                 pud = pud_offset(pgd, address);
 
-                printk(KERN_INFO "PUD INFO: PRESENT: %d, NONE: %d, BAD: %d\n", pud_present(*pud), pud_bad(*pud), pud_none(*pud));
+                printk(KERN_INFO "PUD INFO: PRESENT: %d, BAD: %d, NONE: %d\n", pud_present(*pud), pud_bad(*pud), pud_none(*pud));
                    
                 if(!(pud_none(*pud) || pud_bad(*pud)) && pud_present(*pud))
                 {
                     pmd = pmd_offset(pud, address);
-                    printk(KERN_INFO "PMD INFO: PRESENT: %d, NONE: %d, BAD: %d\n", pmd_present(*pmd), pmd_bad(*pmd), pmd_none(*pmd));
+                    printk(KERN_INFO "PMD INFO: PRESENT: %d, BAD: %d, NONE: %d\n", pmd_present(*pmd), pmd_bad(*pmd), pmd_none(*pmd));
                    
-                    if(!(pmd_none(*pmd) || pmd_bad(*pmd)) && pmd_present(*pmd))
+                    if((!pmd_none(*pmd) || !pmd_bad(*pmd)) && pmd_present(*pmd))
                     {
                         printk(KERN_INFO " after pmd if before pte = pre offset"); 
                         pte = pte_offset_map(pmd, address);
-                        printk(KERN_INFO "PTE INFO: PRESENT: %d\n", pte_present(*pte));
+                        printk(KERN_INFO "PTE INFO: PRESENT: %d pte: %lu \n ", pte_present(*pte), pte->pte);
 
-                        if(pte_present(*pte))
+                        //if(pte_present(*pte))
                         {
-                          printk(KERN_INFO " after pte if "); 
 
-                          if(!pte_none(*pte))
-                          {
-                            printk(KERN_INFO " !pte_none(*pte) \n"); 
+                              return pte->pte;
 
-                            return pte->pte;
-                            //return 0;
-                          }
-                          else
-                          {
-                            printk(KERN_INFO " in else \n"); 
-
-                              return __pte_to_swp_entry(*pte).val;
-                            //return 0;
-                          }
-                          
                         }
                     }
                 }
