@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			printf("[ %s ] Data Not Available.", argv[0]);
+			printf("[ %s ] Data Not Available.\n", argv[0]);
 		}
 	}
 	else
