@@ -1,12 +1,19 @@
 //-----------------------------------------------------------------------------
 // Project 3 Userspace code.
 //-----------------------------------------------------------------------------
- 
+
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
+
 #define __NR_sys_get_addr 359
- 
- 
+
+#define CHECK_BIT(v, pos) ((v) & (1l << pos)) // Checks the bit at the given position and returns 1 or 0.
+#define PAGE_SWAP_BIT 0
+#define GET_OFFSET(pte) ((pte) & (0b11111111111111111111000000000000))//
+#define GET_PFN(pte) (((pte) & (0b11111111111111111111000000000000)) >> 12) // WORKS
+#define GET_SWAP_OFFSET(pte) ((pte) & (0b11111111111111111111000000000000)) 
+#define GET_VFN(v_addr) (((v_addr) & (0xFFFFF000)) >> 12) // WORKS
+#define GET_IN_SWAP(pte) CHECK_BIT(pte, PAGE_SWAP_BIT) 
 
 
 void printBits(size_t const size, void const * const ptr)
@@ -30,31 +37,26 @@ void printBits(size_t const size, void const * const ptr)
 
 int main(int argc, char* argv[])
 {
-    //unsigned long vfn;
-    long pleaseWork =0 ;
-    //unsigned long physical;
-    unsigned long temp = strtoul(argv[2],NULL,16);
-    printf("Address:");
     if(argc == 3)
     {
+        int pid = atoi(argv[1]);
+        unsigned long vfn;
+        unsigned long v_addr = strtoul(argv[2],NULL,16); // we expect the virtual address in hex form for simplicity
 
-        //printf("before\n");
-        pleaseWork = syscall(__NR_sys_get_addr, atoi(argv[1]),temp) ;
-        //printf("after\n");
+        printf("[ %s ] PID: %d, Virtual Address: 0x%lx\n", argv[0], pid, v_addr);
+        unsigned long pte = syscall(__NR_sys_get_addr, pid, v_addr) ;
 
-        printf("%lu\n\n\n",pleaseWork);
-
-        printBits(sizeof(pleaseWork), &pleaseWork);
-
-        pleaseWork = ( 0xfffff000 & pleaseWork);
-        //printf("%lu\n",pleaseWork);
-
-        printf("0x%x\n",pleaseWork);
-
+        if(pte != 0)
+        {
+            printf("Output: 0x%lx or %d \n", GET_OFFSET(pte) , (int)pte );
+        }
+        else
+        {
+            printf("[ %s ] Data Not Available.\n", argv[0]);
+        }
     }
     else
     {
-        printf("ERROR: Two Arguments expected! Number of Arguments:%d\n\n", (argc - 1));
+        printf("[ %s ] ERROR: Two Arguments expected! Number of Arguments:%d\n\n", argv[0], (argc - 1));
     }
-
 }
